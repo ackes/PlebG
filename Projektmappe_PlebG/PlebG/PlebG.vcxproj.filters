@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Quelle.cpp">
+    <ClCompile Include="plebg.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
