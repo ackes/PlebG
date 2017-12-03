@@ -1,0 +1,29 @@
+TODO:
+
+@Project
+
+Prototyp
+2D Survival Shooter Vogelperspektive (Keyboard only!)
+
+Game?
+3D Survival Shooter Vogelperspektive (Keyboard + Maus/Gamepad)
+3D Survival Shooter FP/FoV Perspektive (Keyboard + Maus/Gamepad)
+
+@Steps
+
+- Fenster öffnen
+- Fenster über Backbuffer füllen
+- Fenster mit Vorder (Objekte, Pleb) /Hintergrund (Karte) füllen
+- Pleb auf Fenster malen
+- Pleb mit Texturen malen
+- Pleb auf Fenster über Keyboard bewegen (Pleb bleibt auf Fenster zentriert)
+- Sound!!
+- Kollisionen zwischen Pleb und Objekten (Aufnehmen von Waffen, Schiessen, Wände,...)
+- Game HUD (Inventar, Health, ...)
+- Game Mechanik (Aufnehmen der Gegenstände...)
+- Einfache AI (Gegner)
+- Multiplayer Input
+
+Prototyp finished!
+
+"Es lebe der Pleb!"
