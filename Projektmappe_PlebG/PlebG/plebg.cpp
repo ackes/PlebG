@@ -2,29 +2,33 @@
 #include <Windows.h>
 #include <stdio.h>
 
-//Jedesmal wenn kopiert wird, wird eine neue Bitmap erstellt und an unser DC angepasst -- unperformant, aber leichter zu verstehen
+//NOTE(Patrick): Jedesmal wenn kopiert wird, wird eine neue Bitmap erstellt und an unser DC angepasst -- unperformant, aber leichter zu verstehen
 void CopyBITMAPToDC(int DCwidth, int DCheight, int X, int Y, RECT GameRECT, HDC DeviceContext) {
-	//Der BITMAPInfoHeader für die Rahmenbedingungen der Bitmap
-	tagBITMAPINFOHEADER BitmapInfoHeader;
-	//Bitmapinfo für die Farbgebung etc.
-	tagBITMAPINFO BitmapInfo;
-	BitmapInfo.bmiHeader = BitmapInfoHeader;
 	
-	BitmapInfoHeader.biSize = sizeof(BitmapInfo.bmiHeader);
-	BitmapInfoHeader.biPlanes = 1;
-	BitmapInfoHeader.biBitCount = 32;
-	BitmapInfoHeader.biCompression = BI_RGB;
-	BitmapInfoHeader.biSizeImage;
-	BitmapInfoHeader.biClrUsed = 0; // 0 bedeutet, dass die Bitmap die maximale Anzahl an möglichen Farben nutzt
-	BitmapInfoHeader.biClrImportant = 0;
-	int BMwidth = BitmapInfoHeader.biWidth;
-	int BMheight = -BitmapInfoHeader.biHeight;
+	//TODO(Patrick): VirtualFree den angelegten Speicher - Funktion in zwei Funktionen splitten
+	
+	//NOTE(Patrick): Bitmapinfo für die Farbgebung etc
+	int BMwidth = DCwidth;
+	int BMheight = DCheight;
 
-	//BitmapMemory muss über die VirtualAlloc Funktion zugewiesen werden. Die Größe dieses Speichers entspricht der Höhe*Breite*Anzahl der Bytes der Bitmap
+	BITMAPINFO BitmapInfo;
+	BitmapInfo.bmiHeader.biWidth;
+	BitmapInfo.bmiHeader.biHeight;
+	BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
+	BitmapInfo.bmiHeader.biPlanes = 1;
+	BitmapInfo.bmiHeader.biBitCount = 32;
+	BitmapInfo.bmiHeader.biCompression = BI_RGB;
+	BitmapInfo.bmiHeader.biSizeImage;
+	BitmapInfo.bmiHeader.biClrUsed = 0;
+	BitmapInfo.bmiHeader.biClrImportant = 0;
+	BitmapInfo.bmiHeader.biWidth = BMwidth;
+	BitmapInfo.bmiHeader.biHeight = -BMheight;
+
+	//NOTE(Patrick): BitmapMemory muss über die VirtualAlloc Funktion zugewiesen werden. Die Größe dieses Speichers entspricht der Höhe*Breite*Anzahl der Bytes der Bitmap
 	int BitmapMemorySize = BMwidth*BMheight * 4;
 	void *BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
 
-	//StretchDIBits um Bitmap auf DeviceContext zu kopieren
+	//Note(Patrick): StretchDIBits um Bitmap auf DeviceContext zu kopieren
 	StretchDIBits(
 						DeviceContext,
 						0, 0, DCwidth, DCheight,
@@ -41,6 +45,8 @@ LRESULT CALLBACK WndProc(
 	WPARAM wParam,
 	LPARAM lParam)
 {
+	LRESULT Result = 0;
+
 	switch (uMsg) {
 	case WM_CREATE:
 		// Initialize the window. 
@@ -82,7 +88,7 @@ int CALLBACK WinMain(
 
     if (RegisterClass(&WNDClass)) {
     	HWND GameWindow = CreateWindowEx(
-			WS_EX_CLIENTEDGE,
+			0,
   			//WNDClass.lpszClassName,
   			"PlebG",
   			"PlebG-WindowName",
@@ -97,25 +103,27 @@ int CALLBACK WinMain(
 			0);
 
 			
+		
 
-			//if(GameWindow) {
-			//	ShowWindow(GameWindow, SW_SHOW);
-			//	UpdateWindow(GameWindow);
-			//}
-
+		for (;;)				//NOTE(Patrick): Solange das GameWindow offen ist, müssen die Funktionen, nach jeder Nachricht neu ausgeführt werden
+		{
 			MSG msg;
-			while (GetMessage(&msg, NULL, 0, 0)) {
+			//NOTE(Patrick): Unlike GetMessage, the PeekMessage function does not wait for a message to be posted before returning.
+			while (PeekMessage(&msg, GameWindow, 0, 0, PM_REMOVE))
+			{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
-			} return (int)msg.wParam;
+			}
 
 			HDC DeviceContext = GetDC(GameWindow);
 			RECT GameRECT;
+			GetClientRect(GameWindow, &GameRECT);
 			int DCwidth = GameRECT.right - GameRECT.left;
 			int DCheight = GameRECT.bottom - GameRECT.top;
-			GetClientRect(GameWindow, &GameRECT);
+			
 			CopyBITMAPToDC(DCwidth, DCheight, 0, 0, GameRECT, DeviceContext);
 			ReleaseDC(GameWindow, DeviceContext);
+		}
     }
     else {
     	MessageBox(
