@@ -15,14 +15,14 @@ static BITMAPINFO BitmapInfo;
 
 void DrawingFunction()
 {
-	unsigned int jump = BMwidth * 4;
+	unsigned int JumpNextRow = BMwidth * 4;
 	unsigned char *Row = (unsigned char*)BitmapMemory; //NOTE(Patrick): Cast von Void auf Char (8 Bit Integer => 0-255 wegen unsigned)
 
 	for (int x = 0; x < BMheight; x++) {
 		unsigned char *Pixel = (unsigned char*)Row;
 		for (int y = 0; y < BMwidth; y++) {
 			*Pixel = 0;
-			++Pixel;
+			++Pixel;									//Durch ++Pixel springt man wegen Typ Char 8 Bit weiter
 			*Pixel = 0;
 			++Pixel;
 			*Pixel = 255;
@@ -30,10 +30,16 @@ void DrawingFunction()
 			*Pixel = 0;
 			++Pixel;
 		}
-		Row = Row + jump;
+		Row = Row + JumpNextRow;
 	}
 }
+//&Bitmapmemory Addresse Bitmapmemory 0x000a4252
+//*Bitmapmemory			0x00000000
+//Bitmapmemory (void)	0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
+// *Row = *Bitmapmemory = 0x00000000
+// *Pixel = *Row = *Bitmapmemory = 0x00000000
+// a = Bitmapmemory
 
 void CreateBitmap(int width, int height) {
 	//TODO(Patrick): VirtualFree den angelegten Speicher
@@ -56,7 +62,7 @@ void CreateBitmap(int width, int height) {
 
 	//NOTE(Patrick): BitmapMemory muss über die VirtualAlloc Funktion zugewiesen werden. Die Größe dieses Speichers entspricht der Höhe*Breite*Anzahl der Bytes der Bitmap
 	int BitmapMemorySize = BMwidth*BMheight * 4;
-	void *BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
+	BitmapMemory = VirtualAlloc(0, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
 }
 
 void CopyBitmapToDC(HDC DeviceContext, RECT *GameRECT, int width, int height, int x, int y) {		//Pointer des RECTS um nicht den kompletten Stack mit einem Rectangle vollzumachen
@@ -101,6 +107,7 @@ LRESULT CALLBACK WndProc(
 		case WM_PAINT:
 		{
 			OutputDebugStringA("PAINT\n");
+			DrawingFunction();
 			PAINTSTRUCT Paint;
 			HDC DeviceContext = BeginPaint(hwnd, &Paint);
 			
@@ -112,7 +119,6 @@ LRESULT CALLBACK WndProc(
 			RECT GameRECT;
 			GetClientRect(hwnd, &GameRECT);
 			CopyBitmapToDC(DeviceContext, &GameRECT, Paintwidth, Paintheight, x, y);
-			//DrawingFunction();
 			EndPaint(hwnd, &Paint);
 			
 		}break;
