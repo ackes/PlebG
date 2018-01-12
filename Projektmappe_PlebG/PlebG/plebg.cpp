@@ -7,6 +7,7 @@
 // x entspricht der Anzahl der Zeilen
 // y entspricht der Anzahl der Spalten
 
+#include <stdio.h>
 #include <Windows.h>
 #include <stdint.h>
 
@@ -19,10 +20,10 @@ static void *MergedMemory;
 static BITMAPINFO BitmapInfo;
 
 struct pleb {
-	int rowPos = BMheight / 2;
-	int colPos = BMwidth / 2;
-	int plebWidth = BMwidth / 20 ;
-	int plebHeight = BMheight / 15;
+	int rowPos     = BMheight / 6;
+	int colPos     = BMheight / 6; 
+	int plebWidth  = BMwidth / 20 ;
+	int plebHeight = BMheight / 20;
 };
 
 void CreateBackgroundBuffer(int width, int height) {
@@ -50,6 +51,12 @@ void CreateBackgroundBuffer(int width, int height) {
 
 void DrawingBackground()
 {
+	pleb pleb;
+	pleb.rowPos = 400;
+	pleb.colPos = 400;
+	pleb.plebHeight = 100;
+	pleb.plebWidth = 100;
+
 	unsigned int JumpNextRow = BMwidth * 4;
 	unsigned char *Row = (unsigned char*)BackgroundMemory; //NOTE(Patrick): Cast von Void auf Char (8 Bit Integer => 0-255 wegen unsigned)
 
@@ -57,14 +64,32 @@ void DrawingBackground()
 		unsigned char *Pixel = (unsigned char*)Row;
 		//Wir malen BB GG RR xx
 		for (int y = 0; y < BMwidth; y++) {
-			*Pixel = 100;
-			++Pixel;									//Durch ++Pixel springt man wegen Typ Char 8 Bit weiter
-			*Pixel = 100;
-			++Pixel;
-			*Pixel = 0;
-			++Pixel;
-			*Pixel = 0;
-			++Pixel;
+			if (x >= (pleb.rowPos - pleb.plebHeight)) {
+				if (x <= (pleb.rowPos + pleb.plebHeight)) {
+					if (y >= 500) {
+						if (y <= 1000) {
+							*Pixel = 150;
+							++Pixel;
+							*Pixel = 255;
+							++Pixel;
+							*Pixel = 100;
+							++Pixel;
+							*Pixel = 0;
+							++Pixel;
+						}
+					}
+				}
+			}
+			else {
+				*Pixel = 80;
+				++Pixel;									//Durch ++Pixel springt man wegen Typ Char 8 Bit weiter
+				*Pixel = 70;
+				++Pixel;
+				*Pixel = 0;
+				++Pixel;
+				*Pixel = 150;
+				++Pixel;
+			}
 		}
 		Row = Row + JumpNextRow;
 	}
@@ -82,7 +107,7 @@ void CreateForegroundBuffer(int width, int height) {
 	BMheight = height;
 
 	BitmapInfo.bmiHeader.biWidth = BMwidth;
-	BitmapInfo.bmiHeader.biHeight = -BMheight;
+	BitmapInfo.bmiHeader.biHeight = BMheight;
 	BitmapInfo.bmiHeader.biSize = sizeof(BitmapInfo.bmiHeader);
 	BitmapInfo.bmiHeader.biPlanes = 1;
 	BitmapInfo.bmiHeader.biBitCount = 32;
@@ -96,6 +121,10 @@ void CreateForegroundBuffer(int width, int height) {
 void DrawingForeground()
 {
 	pleb pleb;
+	pleb.rowPos = 400;
+	pleb.colPos = 400;
+	pleb.plebHeight = 100;
+	pleb.plebWidth = 100;
 	
 	unsigned int JumpNextRow = BMwidth * 4;
 	unsigned char *Row = (unsigned char*)ForegroundMemory; //NOTE(Patrick): Cast von Void auf Char (8 Bit Integer => 0-255 wegen unsigned)
@@ -103,14 +132,14 @@ void DrawingForeground()
 		unsigned char *Pixel = (unsigned char*)Row;
 		for (int y = 0; y < BMwidth; y++) {
 			if (x >= (pleb.rowPos - pleb.plebHeight)) {
-				if (y >= pleb.colPos - pleb.plebWidth) {
-					if (x < pleb.rowPos + pleb.plebHeight) {
-						if (y < pleb.colPos + pleb.plebWidth) {
-							*Pixel = 0;
+				if (y >= (pleb.colPos - pleb.plebWidth)) {
+					if (x < (pleb.rowPos + pleb.plebHeight)) {
+						if (y < (pleb.colPos + pleb.plebWidth)) {
+							*Pixel = 150;
 							++Pixel;
 							*Pixel = 255;
 							++Pixel;
-							*Pixel = 0;
+							*Pixel = 100;
 							++Pixel;
 							*Pixel = 0;
 							++Pixel;
@@ -223,7 +252,9 @@ void CopyBitmapToWindow(HDC DeviceContext, RECT *GameRECT, int width, int height
 		DeviceContext,
 		0, 0, WWidth, WHeight,
 		0, 0, BMwidth, BMheight,
-		MergedMemory,
+		BackgroundMemory,
+		//MergedMemory,
+		//ForegroundMemory,
 		&BitmapInfo,
 		DIB_RGB_COLORS,
 		SRCCOPY);
@@ -258,7 +289,6 @@ LRESULT CALLBACK WndProc(
 		}break;
 		case WM_PAINT:
 		{
-			OutputDebugStringA("PAINT\n");
 			DrawingBackground();
 			DrawingForeground();
 			MergeBuffer();
